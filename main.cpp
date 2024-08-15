@@ -21,6 +21,11 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
 
+#include <itkImageFileReader.h>
+#include <itkImageToVTKImageFilter.h>
+#include <itkNrrdImageIO.h>
+#include <itkNrrdImageIOFactory.h>
+
 namespace Log = spdlog;
 void setUpSpdlog()
 {
@@ -41,72 +46,85 @@ int main()
     setUpSpdlog();
 
     auto usFile = THIS_PROJECT_PATH + "data/robot_scan_15-11-02_29-03-2024(2).nrrd";
-    auto mriFile = THIS_PROJECT_PATH + "data/SUPAWAT20240211MR_AXT2THIN.nrrd";
+    // auto mriFile = THIS_PROJECT_PATH + "data/SUPAWAT20240211MR_AXT2THIN.nrrd";
 
-    auto reader = vtkSmartPointer<vtkNrrdReader>::New();
-    reader->SetFileName(usFile.c_str());
-    reader->Update();
-
-    auto usOrigin = reader->GetDataOrigin();
-    auto usSpacing = reader->GetDataSpacing();
-    auto usBounds = reader->GetOutput()->GetBounds();
-
-    Log::debug("US Origin: ({}, {}, {})", usOrigin[0], usOrigin[1], usOrigin[2]);
-    Log::debug("US Spacing: ({}, {}, {})", usSpacing[0], usSpacing[1], usSpacing[2]);
-    Log::debug("US Bounds: ({}, {}, {}, {}, {}, {})", usBounds[0], usBounds[1], usBounds[2], usBounds[3], usBounds[4], usBounds[5]);
-
-    std::vector<Point<double>> corners;
-    for (int x = 0; x < 2; x++)
+    Log::warn("Using VTK reader");
+    auto vtkReader = vtkSmartPointer<vtkNrrdReader>::New();
+    vtkReader->SetFileName(usFile.c_str());
+    vtkReader->Update();
     {
-        for (int y = 0; y < 2; y++)
-        {
-            Point<double> corner;
-            for (int z = 0; z < 2; z++)
-            {
-                corner.x = usBounds[x];
-                corner.y = usBounds[2 + y];
-                corner.z = usBounds[4 + z];
-            }
-            Log::debug("Corner: {}", corner.toStdString());
-        }
+        auto usOrigin = vtkReader->GetDataOrigin();
+        auto usSpacing = vtkReader->GetDataSpacing();
+        auto usBounds = vtkReader->GetOutput()->GetBounds();
+        // auto usDirection = vtkReader->GetOutput()->GetDirection();
+
+        Log::debug("US Origin: ({}, {}, {})", usOrigin[0], usOrigin[1], usOrigin[2]);
+        Log::debug("US Spacing: ({}, {}, {})", usSpacing[0], usSpacing[1], usSpacing[2]);
+        Log::debug("US Bounds: ({}, {}, {}, {}, {}, {})", usBounds[0], usBounds[1], usBounds[2], usBounds[3], usBounds[4], usBounds[5]);
+        // std::string directionStr;
+        // for (int i = 0; i < 9; i++)
+        // {
+        //     directionStr += std::to_string(usDirection[i]) + " ";
+        // }
+        // Log::debug("US Direction: {}", directionStr);
+
+        // std::vector<Point<double>> corners;
+        // for (int x = 0; x < 2; x++)
+        // {
+        //     for (int y = 0; y < 2; y++)
+        //     {
+        //         Point<double> corner;
+        //         for (int z = 0; z < 2; z++)
+        //         {
+        //             corner.x = usBounds[x];
+        //             corner.y = usBounds[2 + y];
+        //             corner.z = usBounds[4 + z];
+        //         }
+        //         Log::debug("Corner: {}", corner.toStdString());
+        //     }
+        // }
     }
 
-    // // Point<int> voxel = { 0, 0, 0 };
-    // Point<double> usTestOrigin = { usOrigin[0], usOrigin[1], usOrigin[2] };
-    // Point<double> usTestSpacing = { usSpacing[0], usSpacing[1], usSpacing[2] };
-    // double usDirection[9] = { 0, 1, 0, 0, 0, -1, -1, 0, 0 };
-    // // Point<double> usWorld;
-    // // fromVoxelIJKToWorldXYZ(voxel);
-    // Point<int> voxel;
-    // Point<double> world = { usOrigin[0], usOrigin[1], usOrigin[2] };
-    // fromWorldXYZToVoxelIJK(world, usTestOrigin, usTestSpacing, usDirection, voxel);
+    itk::NrrdImageIOFactory::RegisterOneFactory();
 
-    // Log::debug("Voxel: ({}, {}, {})", voxel.x, voxel.y, voxel.z);
+    auto itkReader = itk::ImageFileReader<itk::Image<float, 3>>::New();
+    itkReader->SetFileName(usFile);
+    itkReader->Update();
+    // auto metadata = itkReader->GetMetaDataDictionary();
+    // for (const auto& key : metadata.GetKeys())
+    // {
+    //     std::string value;
+    //     itk::ExposeMetaData<std::string>(metadata, key, value);
+    //     Log::debug("Key: {}, Value: {}", key, value);
+    // }
 
-    // ...
+    Log::warn("Using ITK to VTK filter");
 
-    // Create a vtkImageData object from the reader's output
-    vtkSmartPointer<vtkImageData> imageData = reader->GetOutput();
+    auto itkToVtkFilter = itk::ImageToVTKImageFilter<itk::Image<float, 3>>::New();
+    itkReader->Update();
+    auto usDirection = itkReader->GetOutput()->GetDirection();
+    double usDirectionArray[9];
+    for (int i = 0; i < 9; i++)
+    {
+        usDirectionArray[i] = usDirection[i / 3][i % 3];
+    }
 
-    // Create a vtkImageActor to display the image
-    vtkSmartPointer<vtkImageActor> imageActor = vtkSmartPointer<vtkImageActor>::New();
-    imageActor->SetInputData(imageData);
+    Log::debug("US Direction: {}, {}, {}, {}, {}, {}, {}, {}, {}",
+        usDirectionArray[0], usDirectionArray[1], usDirectionArray[2],
+        usDirectionArray[3], usDirectionArray[4], usDirectionArray[5],
+        usDirectionArray[6], usDirectionArray[7], usDirectionArray[8]);
 
-    // Create a renderer and add the image actor to it
-    vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
-    renderer->AddActor(imageActor);
+    itkToVtkFilter->SetInput(itkReader->GetOutput());
+    itkToVtkFilter->Update();
 
-    // Create a render window and set the renderer
-    vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-    renderWindow->AddRenderer(renderer);
-
-    // Create an interactor and set the render window
-    vtkSmartPointer<vtkRenderWindowInteractor> interactor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-    interactor->SetRenderWindow(renderWindow);
-
-    // Initialize the interactor and start the event loop
-    interactor->Initialize();
-    interactor->Start();
-
+    {
+        auto usOrigin = itkToVtkFilter->GetOutput()->GetOrigin();
+        auto usSpacing = itkToVtkFilter->GetOutput()->GetSpacing();
+        auto usBounds = itkToVtkFilter->GetOutput()->GetBounds();
+        Log::debug("US Origin: ({}, {}, {})", usOrigin[0], usOrigin[1], usOrigin[2]);
+        Log::debug("US Spacing: ({}, {}, {})", usSpacing[0], usSpacing[1], usSpacing[2]);
+        Log::debug("US Bounds: ({}, {}, {}, {}, {}, {})", usBounds[0], usBounds[1], usBounds[2], usBounds[3], usBounds[4], usBounds[5]);
+        std::string directionStr;
+    }
     return 0;
 }

@@ -40,6 +40,10 @@ set(ITK_DIR ${ITK5.1_DIR})
 message(STATUS "ITK_DIR: ${ITK_DIR}")
 find_package(ITK REQUIRED COMPONENTS
     ITKCommon
+    ITKVtkGlue
+    ITKVTK
+    ITKIOImageBase
+    ITKIONRRD
 )
 include(${ITK_USE_FILE})
 
