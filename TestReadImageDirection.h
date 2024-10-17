@@ -1,29 +1,29 @@
 #pragma once
-#include <spdlog/spdlog.h>
 
 #include <vtkImageActor.h>
 #include <vtkImageData.h>
 #include <vtkImageReslice.h>
+#include <vtkImageViewer2.h>
 #include <vtkMatrix4x4.h>
 #include <vtkNrrdReader.h>
-#include <vtkSmartPointer.h>
-#include <vtkTransform.h>
-
-#include "DEFINE_PATH.h"
-#include <ImageCoordinate.h>
-#include <Point.h>
-
-#include <vtkImageViewer2.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
+#include <vtkSmartPointer.h>
+#include <vtkTransform.h>
 
 #include <itkImageFileReader.h>
 #include <itkImageToVTKImageFilter.h>
 #include <itkNrrdImageIO.h>
 #include <itkNrrdImageIOFactory.h>
 
+#include "DEFINE_PATH.h"
+#include <ImageCoordinate.h>
+#include <Point.h>
+
+#include <spdlog/spdlog.h>
 namespace Log = spdlog;
+
 void testReadImageDirection()
 {
     auto usFile = THIS_PROJECT_PATH + "data/robot_scan_15-11-02_29-03-2024(2).nrrd";

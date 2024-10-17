@@ -83,7 +83,8 @@
 			"concepts": "cpp",
 			"format": "cpp",
 			"optional": "cpp",
-			"stop_token": "cpp"
+			"stop_token": "cpp",
+			"*.txx": "cpp"
 		}
 	}
 }

@@ -3,9 +3,10 @@
 #include <vector>
 
 #include <spdlog/spdlog.h>
+namespace Log = spdlog;
 
 #include "TestReadImageDirection.h"
-namespace Log = spdlog;
+#include "TestvtkImageConnectivityFilter.h"
 void setUpSpdlog()
 {
     try
@@ -25,6 +26,6 @@ int main()
     setUpSpdlog();
 
     // testReadImageDirection();
-
+    testvtkImageConnectivityFilter();
     return 0;
 }
