@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
 
-
 project(ITKVTKDemo)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
 # ==============================================================================
 set(ITKVTKlibs_DIR ${CMAKE_CURRENT_LIST_DIR}/lib/ITKVTKlibs)
@@ -14,19 +14,7 @@ set(Qt5_DIR "C:/Qt/Qt5.12.10/5.12.10/msvc2015_64/lib/cmake/Qt5")
 # ==============================================================================
 
 # add spdlog as sub project
-include(ExternalProject)
-ExternalProject_Add(spdlog
-    PREFIX spdlog
-    SOURCE_DIR ${PROJECT_SOURCE_DIR}/lib/spdlog
-    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-    -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-    -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-    -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-    -DCMAKE_INSTALL_PREFIX=${STAGING_DIR}
-    -DSPDLOG_BUILD_SHARED=OFF
-)
-
-
+include(spdlog_fetch)
 
 # add VTK first cause itkVtkGlue depends on VTK
 set(VTK_DIR ${VTK8.2_DIR})
@@ -59,11 +47,10 @@ add_executable(${PROJECT_NAME}
     ${SRC_FILES}
 )
 
-add_dependencies(${PROJECT_NAME} spdlog)
-
 target_link_libraries(${PROJECT_NAME}
     ${ITK_LIBRARIES}
     ${VTK_LIBRARIES}
+    spdlog
     Qt5::Core
 )
 
@@ -77,9 +64,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 # get_filename_component(qt_exec_bin_dir "${qmake_exec_filepath}" DIRECTORY)
 # find_program(windeployqt_exec_filepath windeployqt HINTS "${qt_exec_bin_dir}")
 # add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-#     COMMAND "${CMAKE_COMMAND}" -E
-#     env PATH="${qt_exec_bin_dir}" "${windeployqt_exec_filepath}"
-#     --verbose 0
-#     "$<TARGET_FILE:${PROJECT_NAME}>"
-#     COMMENT "Running windeployqt..."
+# COMMAND "${CMAKE_COMMAND}" -E
+# env PATH="${qt_exec_bin_dir}" "${windeployqt_exec_filepath}"
+# --verbose 0
+# "$<TARGET_FILE:${PROJECT_NAME}>"
+# COMMENT "Running windeployqt..."
 # )
