@@ -60,13 +60,13 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 
 # find windeployqt
-# get_target_property(qmake_exec_filepath Qt5::qmake IMPORTED_LOCATION)
-# get_filename_component(qt_exec_bin_dir "${qmake_exec_filepath}" DIRECTORY)
-# find_program(windeployqt_exec_filepath windeployqt HINTS "${qt_exec_bin_dir}")
-# add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-# COMMAND "${CMAKE_COMMAND}" -E
-# env PATH="${qt_exec_bin_dir}" "${windeployqt_exec_filepath}"
-# --verbose 0
-# "$<TARGET_FILE:${PROJECT_NAME}>"
-# COMMENT "Running windeployqt..."
-# )
+get_target_property(qmake_exec_filepath Qt5::qmake IMPORTED_LOCATION)
+get_filename_component(qt_exec_bin_dir "${qmake_exec_filepath}" DIRECTORY)
+find_program(windeployqt_exec_filepath windeployqt HINTS "${qt_exec_bin_dir}")
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND "${CMAKE_COMMAND}" -E
+    env PATH="${qt_exec_bin_dir}" "${windeployqt_exec_filepath}"
+    --verbose 0
+    "$<TARGET_FILE:${PROJECT_NAME}>"
+    COMMENT "Running windeployqt..."
+)

@@ -6,7 +6,9 @@
 namespace Log = spdlog;
 
 #include "TestReadImageDirection.h"
+#include "TestWriteVTKImageData.h"
 #include "TestvtkImageConnectivityFilter.h"
+
 void setUpSpdlog()
 {
     try
@@ -26,6 +28,7 @@ int main()
     setUpSpdlog();
 
     // testReadImageDirection();
-    testvtkImageConnectivityFilter();
+    // testvtkImageConnectivityFilter();
+    testWriteVtkImageData();
     return 0;
 }

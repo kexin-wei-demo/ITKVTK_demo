@@ -84,7 +84,8 @@
 			"format": "cpp",
 			"optional": "cpp",
 			"stop_token": "cpp",
-			"*.txx": "cpp"
+			"*.txx": "cpp",
+			"qfileinfo": "cpp"
 		}
 	}
 }
